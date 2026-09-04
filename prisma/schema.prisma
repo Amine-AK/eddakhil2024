@@ -300,6 +300,7 @@ model EntryEvent {
   overrideReason      String?
   parentPresent       Boolean       @default(false)
   gateUserId          String
+  idempotencyKey      String        @unique
   createdAt           DateTime      @default(now())
 
   @@index([studentId, date])

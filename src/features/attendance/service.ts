@@ -189,7 +189,7 @@ export async function saveAttendance(user: SessionUser, input: SaveAttendanceInp
           date: dateKeyToUtcDate(input.dateKey),
           segment: input.segment,
           status: entry.status,
-          reason: entry.status === "ABSENT" ? "UNKNOWN" : null,
+          reason: entry.status === "ABSENT" ? "MORNING_ABSENCE" : null,
           note: entry.note,
           recordedByUserId: user.id,
           idempotencyKey: recordKey,

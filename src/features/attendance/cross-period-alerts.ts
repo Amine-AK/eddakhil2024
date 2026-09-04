@@ -47,3 +47,16 @@ export function latestStatusByStudentSegment<
   }
   return latest;
 }
+
+/** Same idea as above, but keyed by (scheduleId, segment) — for reducing one student's events across several periods in a day. */
+export function latestPerPeriod<T extends { scheduleId: string | null; segment: string; createdAt: Date }>(events: T[]): T[] {
+  const map = new Map<string, T>();
+  for (const event of events) {
+    const key = `${event.scheduleId}:${event.segment}`;
+    const current = map.get(key);
+    if (!current || event.createdAt > current.createdAt) {
+      map.set(key, event);
+    }
+  }
+  return [...map.values()];
+}
