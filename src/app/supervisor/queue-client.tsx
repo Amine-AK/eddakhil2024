@@ -171,7 +171,8 @@ export function SupervisorQueueClient({ canAct }: { canAct: boolean }) {
                   {a.student.lastName} {a.student.firstName} · {a.student.className}
                 </p>
                 <p className="text-sm text-slate-500">
-                  {a.consecutiveDays} يوم غياب متتالٍ غير مبرر — الإجراء المقترح: {ACTION_LABELS[a.rung.action] ?? a.rung.action}
+                  {a.consecutiveDays} يوم غياب متتالٍ غير مبرر — الإجراء المقترح:{" "}
+                  {ACTION_LABELS[a.rung.action] ?? a.rung.action}
                   {a.rung.isHold ? " (حجز)" : ""}
                 </p>
                 {canAct && (
@@ -247,7 +248,11 @@ function Section({ title, empty, children }: { title: string; empty: boolean; ch
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
       <h3 className="mb-2 font-semibold text-slate-700">{title}</h3>
-      {empty ? <p className="text-sm text-slate-400">لا توجد عناصر حالياً.</p> : <ul className="space-y-2">{children}</ul>}
+      {empty ? (
+        <p className="text-sm text-slate-400">لا توجد عناصر حالياً.</p>
+      ) : (
+        <ul className="space-y-2">{children}</ul>
+      )}
     </div>
   );
 }

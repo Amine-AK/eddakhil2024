@@ -23,18 +23,22 @@ async function countRecentUnexplainedAbsenceDays(studentId: string, now: Date, l
 }
 
 /** Computes today's entry-decision recommendation for a student. Read-only: does not persist anything. */
-export async function computeEntryDecisionForStudent(studentId: string, now: Date = new Date()): Promise<EntryDecisionResult> {
+export async function computeEntryDecisionForStudent(
+  studentId: string,
+  now: Date = new Date(),
+): Promise<EntryDecisionResult> {
   const { dateKey } = schoolLocalParts(now);
   const todayDate = dateKeyToUtcDate(dateKey);
   const config = await getEntryDecisionRuleConfig();
 
-  const [todayEvents, justifications, disciplinaryFacts, conductScore, repeatedUnexplainedAbsenceDays] = await Promise.all([
-    prisma.attendanceEvent.findMany({ where: { studentId, date: todayDate }, orderBy: { createdAt: "asc" } }),
-    prisma.justification.findMany({ where: { studentId }, orderBy: { submittedAt: "desc" }, take: 50 }),
-    getDisciplinaryFacts(studentId),
-    getConductScore(studentId),
-    countRecentUnexplainedAbsenceDays(studentId, now, config.repeatedAbsenceLookbackDays),
-  ]);
+  const [todayEvents, justifications, disciplinaryFacts, conductScore, repeatedUnexplainedAbsenceDays] =
+    await Promise.all([
+      prisma.attendanceEvent.findMany({ where: { studentId, date: todayDate }, orderBy: { createdAt: "asc" } }),
+      prisma.justification.findMany({ where: { studentId }, orderBy: { submittedAt: "desc" }, take: 50 }),
+      getDisciplinaryFacts(studentId),
+      getConductScore(studentId),
+      countRecentUnexplainedAbsenceDays(studentId, now, config.repeatedAbsenceLookbackDays),
+    ]);
 
   const latestEvents = latestPerPeriod(todayEvents);
   const absentEvents = latestEvents.filter((e) => e.status === "ABSENT");
@@ -46,7 +50,11 @@ export async function computeEntryDecisionForStudent(studentId: string, now: Dat
   return evaluateEntryDecision({
     now,
     todayAbsences,
-    justifications: justifications.map((j) => ({ status: j.status, absenceDate: j.absenceDate, submittedAt: j.submittedAt })),
+    justifications: justifications.map((j) => ({
+      status: j.status,
+      absenceDate: j.absenceDate,
+      submittedAt: j.submittedAt,
+    })),
     hasTeacherRemovalToday,
     disciplinary: { ...disciplinaryFacts, conductScore },
     repeatedUnexplainedAbsenceDays,

@@ -23,7 +23,11 @@ export const createDisciplinaryActionSchema = z.object({
 });
 
 export const entryDecisionRuleConfigSchema = z.object({
-  justificationWindowHours: z.number().int().min(1).max(24 * 30),
+  justificationWindowHours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 30),
   conductDeductionUnjustifiedAbsence: z.number().int().max(0),
   repeatedAbsenceThresholdOccurrences: z.number().int().min(1),
   repeatedAbsenceLookbackDays: z.number().int().min(1).max(365),

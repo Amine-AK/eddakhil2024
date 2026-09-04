@@ -34,9 +34,9 @@ export function computeAlertCandidates(
  * per student, keyed by (studentId, segment). Attendance history is never
  * deleted, so "current status" is always derived, never stored directly.
  */
-export function latestStatusByStudentSegment<
-  T extends { studentId: string; segment: string; createdAt: Date },
->(events: T[]): Map<string, T> {
+export function latestStatusByStudentSegment<T extends { studentId: string; segment: string; createdAt: Date }>(
+  events: T[],
+): Map<string, T> {
   const latest = new Map<string, T>();
   for (const event of events) {
     const key = `${event.studentId}:${event.segment}`;
@@ -49,7 +49,9 @@ export function latestStatusByStudentSegment<
 }
 
 /** Same idea as above, but keyed by (scheduleId, segment) — for reducing one student's events across several periods in a day. */
-export function latestPerPeriod<T extends { scheduleId: string | null; segment: string; createdAt: Date }>(events: T[]): T[] {
+export function latestPerPeriod<T extends { scheduleId: string | null; segment: string; createdAt: Date }>(
+  events: T[],
+): T[] {
   const map = new Map<string, T>();
   for (const event of events) {
     const key = `${event.scheduleId}:${event.segment}`;

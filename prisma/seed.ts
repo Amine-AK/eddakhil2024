@@ -1,4 +1,12 @@
-import { PrismaClient, Role, AttendanceStatus, AbsenceReason, PeriodSegment, JustificationStatus, DisciplinaryActionType } from "@prisma/client";
+import {
+  PrismaClient,
+  Role,
+  AttendanceStatus,
+  AbsenceReason,
+  PeriodSegment,
+  JustificationStatus,
+  DisciplinaryActionType,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -29,16 +37,21 @@ const PERIODS = [
 const CLASS_NAMES = ["1BAC-1", "1BAC-2", "2BAC-1"];
 const ROOM_NAMES = ["قاعة 101", "قاعة 102", "قاعة 103", "مختبر", "قاعة 105"];
 
-const TEACHER_NAMES = [
-  "أحمد بنعلي",
-  "فاطمة الزهراء العلوي",
-  "يوسف الإدريسي",
-  "خديجة المرابط",
-  "عبد الرحيم الفاسي",
-];
+const TEACHER_NAMES = ["أحمد بنعلي", "فاطمة الزهراء العلوي", "يوسف الإدريسي", "خديجة المرابط", "عبد الرحيم الفاسي"];
 
 const STUDENT_FIRST = ["محمد", "أحمد", "يوسف", "عمر", "خالد", "سارة", "فاطمة", "مريم", "زينب", "ليلى", "أمين", "كريم"];
-const STUDENT_LAST = ["العلوي", "البركاني", "الإدريسي", "الحسني", "الوردي", "بنجلون", "الفاسي", "الشرقاوي", "المنصوري", "الزياني"];
+const STUDENT_LAST = [
+  "العلوي",
+  "البركاني",
+  "الإدريسي",
+  "الحسني",
+  "الوردي",
+  "بنجلون",
+  "الفاسي",
+  "الشرقاوي",
+  "المنصوري",
+  "الزياني",
+];
 
 function firstNonNull<T>(arr: readonly T[], index: number): T {
   const v = arr[index % arr.length];
@@ -65,9 +78,7 @@ async function main() {
   // ── Fixed reference data ────────────────────────────────────────────
   const periods = [];
   for (const p of PERIODS) {
-    periods.push(
-      await prisma.period.upsert({ where: { name: p.name }, update: {}, create: p }),
-    );
+    periods.push(await prisma.period.upsert({ where: { name: p.name }, update: {}, create: p }));
   }
 
   const subjects = [];
@@ -240,7 +251,9 @@ async function main() {
     });
 
     await prisma.crossPeriodAlert.upsert({
-      where: { sourceEventId_targetPeriodId: { sourceEventId: absentEvent.id, targetPeriodId: secondSchedule.periodId } },
+      where: {
+        sourceEventId_targetPeriodId: { sourceEventId: absentEvent.id, targetPeriodId: secondSchedule.periodId },
+      },
       update: {},
       create: {
         studentId: absentStudent!.id,

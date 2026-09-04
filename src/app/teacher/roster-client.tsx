@@ -102,9 +102,7 @@ export function RosterClient({ initial }: { initial: ReadySession }) {
         <div className="mb-3 space-y-2">
           {alerts.map((a) => (
             <div key={a.id} className="rounded-xl border border-orange-300 bg-orange-50 p-3">
-              <p className="text-sm font-semibold text-orange-900">
-                ⚠ {a.studentName}
-              </p>
+              <p className="text-sm font-semibold text-orange-900">⚠ {a.studentName}</p>
               <p className="text-xs text-orange-700">
                 غائب في: {a.sourceSubject} — {a.sourcePeriodName}
               </p>

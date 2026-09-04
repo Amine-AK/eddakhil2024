@@ -92,7 +92,9 @@ describe("issueEntry", () => {
     expect(result.overridden).toBe(true);
     expect(result.finalDecision).toBe("DENIED");
 
-    const audit = await prisma.auditLog.findFirst({ where: { action: "ENTRY_DECISION_OVERRIDDEN", actorId: gateUser.id } });
+    const audit = await prisma.auditLog.findFirst({
+      where: { action: "ENTRY_DECISION_OVERRIDDEN", actorId: gateUser.id },
+    });
     expect(audit).not.toBeNull();
     expect(audit?.reason).toBe("Manual security concern");
   });

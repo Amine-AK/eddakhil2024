@@ -34,7 +34,10 @@ export async function getDisciplinaryFacts(
  * day that is not one — a present/late day, a day with no record yet, or
  * one covered by an APPROVED justification.
  */
-export async function computeConsecutiveUnexplainedAbsenceDays(studentId: string, now: Date = new Date()): Promise<number> {
+export async function computeConsecutiveUnexplainedAbsenceDays(
+  studentId: string,
+  now: Date = new Date(),
+): Promise<number> {
   const student = await prisma.student.findUniqueOrThrow({ where: { id: studentId } });
   const scheduledWeekdays = await prisma.schedule.findMany({
     where: { classId: student.classId },
@@ -78,7 +81,10 @@ export async function computeConsecutiveUnexplainedAbsenceDays(studentId: string
 
 export type SuggestedAction = { consecutiveDays: number; rung: LadderRung } | null;
 
-export async function getSuggestedDisciplinaryAction(studentId: string, now: Date = new Date()): Promise<SuggestedAction> {
+export async function getSuggestedDisciplinaryAction(
+  studentId: string,
+  now: Date = new Date(),
+): Promise<SuggestedAction> {
   const [consecutiveDays, ladder] = await Promise.all([
     computeConsecutiveUnexplainedAbsenceDays(studentId, now),
     getDisciplinaryLadderConfig(),
@@ -122,7 +128,12 @@ export async function getAtRiskStudents(now: Date = new Date()): Promise<AtRiskS
     const student = await prisma.student.findUnique({ where: { id: studentId }, include: { class: true } });
     if (!student) continue;
     results.push({
-      student: { id: student.id, firstName: student.firstName, lastName: student.lastName, className: student.class.name },
+      student: {
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        className: student.class.name,
+      },
       consecutiveDays: suggestion.consecutiveDays,
       rung: suggestion.rung,
     });
@@ -131,7 +142,11 @@ export async function getAtRiskStudents(now: Date = new Date()): Promise<AtRiskS
 }
 
 /** Supervisor applies the ladder's suggested action for a student, creating the disciplinary record. Idempotent per (student, action type, OPEN). */
-export async function applySuggestedAction(user: SessionUser, studentId: string, now: Date = new Date()): Promise<{ id: string }> {
+export async function applySuggestedAction(
+  user: SessionUser,
+  studentId: string,
+  now: Date = new Date(),
+): Promise<{ id: string }> {
   const suggestion = await getSuggestedDisciplinaryAction(studentId, now);
   if (!suggestion) throw new ValidationError("No disciplinary action is currently suggested for this student");
 

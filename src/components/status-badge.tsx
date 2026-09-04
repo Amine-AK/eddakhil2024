@@ -9,7 +9,9 @@ const LABELS: Record<string, { text: string; className: string; icon: string }> 
 export function StatusBadge({ status }: { status: keyof typeof LABELS | string }) {
   const cfg = LABELS[status] ?? LABELS.UNRECORDED!;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${cfg.className}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${cfg.className}`}
+    >
       <span aria-hidden>{cfg.icon}</span>
       {cfg.text}
     </span>

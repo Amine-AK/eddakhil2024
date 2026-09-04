@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { evaluateEntryDecision, type EntryDecisionInput, type EntryDecisionRuleConfig } from "@/features/decision-engine/engine";
+import {
+  evaluateEntryDecision,
+  type EntryDecisionInput,
+  type EntryDecisionRuleConfig,
+} from "@/features/decision-engine/engine";
 
 const config: EntryDecisionRuleConfig = {
   justificationWindowHours: 48,
@@ -72,9 +76,15 @@ describe("evaluateEntryDecision", () => {
   it("allows entry with no conduct deduction when the absence is approved within the 48h window", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
         justifications: [
-          { status: "APPROVED", absenceDate: new Date("2026-01-10T00:00:00.000Z"), submittedAt: new Date("2026-01-10T20:00:00.000Z") },
+          {
+            status: "APPROVED",
+            absenceDate: new Date("2026-01-10T00:00:00.000Z"),
+            submittedAt: new Date("2026-01-10T20:00:00.000Z"),
+          },
         ],
       }),
     );
@@ -86,9 +96,15 @@ describe("evaluateEntryDecision", () => {
   it("allows entry with a grace period while a justification is still pending inside the window", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
         justifications: [
-          { status: "PENDING", absenceDate: new Date("2026-01-10T00:00:00.000Z"), submittedAt: new Date("2026-01-10T10:00:00.000Z") },
+          {
+            status: "PENDING",
+            absenceDate: new Date("2026-01-10T00:00:00.000Z"),
+            submittedAt: new Date("2026-01-10T10:00:00.000Z"),
+          },
         ],
       }),
     );
@@ -99,7 +115,9 @@ describe("evaluateEntryDecision", () => {
   it("still allows entry but applies the conduct deduction when there is no justification at all", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
       }),
     );
     expect(result.decision).toBe("AUTO_ALLOWED");
@@ -110,7 +128,9 @@ describe("evaluateEntryDecision", () => {
   it("applies the conduct deduction once the justification window has expired, even if later approved", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
         justifications: [
           {
             status: "APPROVED",
@@ -127,9 +147,15 @@ describe("evaluateEntryDecision", () => {
   it("applies the conduct deduction when the only justification was rejected", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
         justifications: [
-          { status: "REJECTED", absenceDate: new Date("2026-01-10T00:00:00.000Z"), submittedAt: new Date("2026-01-10T09:00:00.000Z") },
+          {
+            status: "REJECTED",
+            absenceDate: new Date("2026-01-10T00:00:00.000Z"),
+            submittedAt: new Date("2026-01-10T09:00:00.000Z"),
+          },
         ],
       }),
     );
@@ -140,7 +166,9 @@ describe("evaluateEntryDecision", () => {
   it("never lets an unjustified absence alone escalate past AUTO_ALLOWED", () => {
     const result = evaluateEntryDecision(
       baseInput({
-        todayAbsences: [{ date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") }],
+        todayAbsences: [
+          { date: new Date("2026-01-10T00:00:00.000Z"), createdAt: new Date("2026-01-10T08:00:00.000Z") },
+        ],
         disciplinary: { hasActiveSuspension: false, hasActiveHold: false, conductScore: -1 },
       }),
     );

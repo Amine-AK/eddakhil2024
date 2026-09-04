@@ -3,10 +3,7 @@ import { computeAlertCandidates, latestStatusByStudentSegment } from "@/features
 
 describe("computeAlertCandidates", () => {
   it("raises an alert for an ordinary absence in a single period", () => {
-    const result = computeAlertCandidates(
-      [{ id: "e1", studentId: "s1", status: "ABSENT", segment: "FULL" }],
-      false,
-    );
+    const result = computeAlertCandidates([{ id: "e1", studentId: "s1", status: "ABSENT", segment: "FULL" }], false);
     expect(result).toEqual([{ studentId: "s1", sourceEventId: "e1" }]);
   });
 
@@ -22,18 +19,12 @@ describe("computeAlertCandidates", () => {
   });
 
   it("suppresses the alert when a FULL-segment absence already covers the paired double-lesson hour", () => {
-    const result = computeAlertCandidates(
-      [{ id: "e1", studentId: "s1", status: "ABSENT", segment: "FULL" }],
-      true,
-    );
+    const result = computeAlertCandidates([{ id: "e1", studentId: "s1", status: "ABSENT", segment: "FULL" }], true);
     expect(result).toEqual([]);
   });
 
   it("still raises an alert for a HOUR_1-only absence in a paired double lesson (must not imply HOUR_2)", () => {
-    const result = computeAlertCandidates(
-      [{ id: "e1", studentId: "s1", status: "ABSENT", segment: "HOUR_1" }],
-      true,
-    );
+    const result = computeAlertCandidates([{ id: "e1", studentId: "s1", status: "ABSENT", segment: "HOUR_1" }], true);
     expect(result).toEqual([{ studentId: "s1", sourceEventId: "e1" }]);
   });
 });

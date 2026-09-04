@@ -54,7 +54,13 @@ beforeAll(async () => {
     data: { email: `teacher-other-${suffix}@test.local`, name: "Other Teacher", role: "TEACHER", passwordHash: "x" },
   });
   const otherTeacher = await prisma.teacher.create({ data: { userId: otherUser.id } });
-  otherTeacherUser = { id: otherUser.id, email: otherUser.email, name: otherUser.name, role: "TEACHER", teacherId: otherTeacher.id };
+  otherTeacherUser = {
+    id: otherUser.id,
+    email: otherUser.email,
+    name: otherUser.name,
+    role: "TEACHER",
+    teacherId: otherTeacher.id,
+  };
 
   const schedule = await prisma.schedule.create({
     data: { academicYearId, classId, teacherId: teacher.id, subjectId, periodId, weekday: 1, isDouble: false },
@@ -62,9 +68,7 @@ beforeAll(async () => {
   scheduleId = schedule.id;
 
   const students = await Promise.all(
-    [1, 2, 3].map((n) =>
-      prisma.student.create({ data: { firstName: `S${n}`, lastName: `Test${suffix}`, classId } }),
-    ),
+    [1, 2, 3].map((n) => prisma.student.create({ data: { firstName: `S${n}`, lastName: `Test${suffix}`, classId } })),
   );
   studentIds = students.map((s) => s.id);
 });
@@ -104,7 +108,9 @@ describe("saveAttendance idempotency", () => {
     await saveAttendance(teacherUser, input);
     await saveAttendance(teacherUser, input); // simulate a network retry of the same submission
 
-    const events = await prisma.attendanceEvent.findMany({ where: { scheduleId, date: new Date("2026-01-05T00:00:00.000Z") } });
+    const events = await prisma.attendanceEvent.findMany({
+      where: { scheduleId, date: new Date("2026-01-05T00:00:00.000Z") },
+    });
     expect(events).toHaveLength(studentIds.length);
   });
 

@@ -1,5 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { activateE2EPeriod, cleanupE2EPeriod, getAttendanceEventCount, disconnect, E2E_TEACHER_EMAIL, E2E_PASSWORD } from "./fixtures";
+import {
+  activateE2EPeriod,
+  cleanupE2EPeriod,
+  getAttendanceEventCount,
+  disconnect,
+  E2E_TEACHER_EMAIL,
+  E2E_PASSWORD,
+} from "./fixtures";
 
 let scheduleId: string | null = null;
 

@@ -1,11 +1,15 @@
 # ── deps ─────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS deps
+# Prisma's query engine needs OpenSSL on musl (Alpine) — without it the
+# engine binary fails to load at runtime with a cryptic libssl error.
+RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # ── build ────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
+RUN apk add --no-cache openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -14,6 +18,7 @@ RUN npm run build
 
 # ── runtime ──────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
+RUN apk add --no-cache openssl
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs

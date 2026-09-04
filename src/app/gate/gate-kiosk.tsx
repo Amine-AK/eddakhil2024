@@ -171,10 +171,14 @@ export function GateKiosk() {
                 نقاط السلوك: {view.disciplinary.conductScore}
               </span>
               {view.disciplinary.hasActiveSuspension && (
-                <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">إيقاف نشط</span>
+                <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+                  إيقاف نشط
+                </span>
               )}
               {view.disciplinary.hasActiveHold && (
-                <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">حجز تأديبي نشط</span>
+                <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+                  حجز تأديبي نشط
+                </span>
               )}
             </div>
           </div>
@@ -241,7 +245,9 @@ export function GateKiosk() {
                         key={d}
                         onClick={() => setOverrideDecision(d)}
                         className={`tap-target flex-1 rounded-lg border py-2 text-xs font-semibold ${
-                          overrideDecision === d ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 text-slate-600"
+                          overrideDecision === d
+                            ? "border-blue-600 bg-blue-600 text-white"
+                            : "border-slate-300 text-slate-600"
                         }`}
                       >
                         {DECISION_LABELS[d].text}

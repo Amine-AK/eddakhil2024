@@ -27,13 +27,8 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg"
-      >
-        <h1 className="mb-1 text-center text-xl font-bold text-slate-800">
-          نظام الحضور والدخول المدرسي
-        </h1>
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
+        <h1 className="mb-1 text-center text-xl font-bold text-slate-800">نظام الحضور والدخول المدرسي</h1>
         <p className="mb-6 text-center text-sm text-slate-500">School Attendance System</p>
 
         {error && (

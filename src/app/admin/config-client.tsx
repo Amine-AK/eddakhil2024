@@ -73,7 +73,9 @@ export function AdminConfigClient() {
 
   return (
     <div className="space-y-4">
-      {savedMessage && <div className="rounded-lg bg-green-100 p-2 text-center text-sm text-green-800">{savedMessage}</div>}
+      {savedMessage && (
+        <div className="rounded-lg bg-green-100 p-2 text-center text-sm text-green-800">{savedMessage}</div>
+      )}
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-700">قواعد قرار الدخول</h3>
@@ -90,7 +92,10 @@ export function AdminConfigClient() {
             </label>
           ))}
         </div>
-        <button onClick={saveRules} className="tap-target mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white">
+        <button
+          onClick={saveRules}
+          className="tap-target mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
+        >
           حفظ
         </button>
       </div>
@@ -126,13 +131,20 @@ export function AdminConfigClient() {
                 ))}
               </select>
               <label className="flex items-center gap-1.5">
-                <input type="checkbox" checked={rung.isHold} onChange={(e) => updateRung(i, { isHold: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={rung.isHold}
+                  onChange={(e) => updateRung(i, { isHold: e.target.checked })}
+                />
                 حجز
               </label>
             </div>
           ))}
         </div>
-        <button onClick={saveLadder} className="tap-target mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white">
+        <button
+          onClick={saveLadder}
+          className="tap-target mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white"
+        >
           حفظ السلم
         </button>
       </div>

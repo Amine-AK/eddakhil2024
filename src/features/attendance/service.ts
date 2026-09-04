@@ -135,7 +135,15 @@ function isPairedDouble(
 /** After attendance is saved for a period, raise alerts for the immediately following period of the same class. */
 async function generateAlertsForNextPeriod(
   tx: Prisma.TransactionClient,
-  schedule: { id: string; classId: string; teacherId: string; subjectId: string; weekday: number; isDouble: boolean; period: { order: number } },
+  schedule: {
+    id: string;
+    classId: string;
+    teacherId: string;
+    subjectId: string;
+    weekday: number;
+    isDouble: boolean;
+    period: { order: number };
+  },
   savedEvents: { id: string; studentId: string; status: AttendanceStatus; segment: PeriodSegment }[],
   dateKey: string,
 ): Promise<void> {
@@ -150,7 +158,9 @@ async function generateAlertsForNextPeriod(
 
   for (const candidate of candidates) {
     await tx.crossPeriodAlert.upsert({
-      where: { sourceEventId_targetPeriodId: { sourceEventId: candidate.sourceEventId, targetPeriodId: nextSchedule.periodId } },
+      where: {
+        sourceEventId_targetPeriodId: { sourceEventId: candidate.sourceEventId, targetPeriodId: nextSchedule.periodId },
+      },
       update: {},
       create: {
         studentId: candidate.studentId,

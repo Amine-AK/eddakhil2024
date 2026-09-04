@@ -11,9 +11,7 @@ export const attendanceEntrySchema = z.object({
 
 export const saveAttendanceSchema = z.object({
   scheduleId: z.string().uuid(),
-  dateKey: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD"),
+  dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD"),
   segment: periodSegmentSchema,
   idempotencyKey: z.string().min(8).max(128),
   entries: z.array(attendanceEntrySchema).min(1),

@@ -36,13 +36,23 @@ beforeAll(async () => {
   const student = await prisma.student.create({ data: { firstName: "Disc", lastName: `Test${suffix}`, classId } });
   studentId = student.id;
   const user = await prisma.user.create({
-    data: { email: `supervisor-${suffix}@test.local`, name: "Supervisor Tester", role: "SUPERVISOR", passwordHash: "x" },
+    data: {
+      email: `supervisor-${suffix}@test.local`,
+      name: "Supervisor Tester",
+      role: "SUPERVISOR",
+      passwordHash: "x",
+    },
   });
   supervisor = { id: user.id, email: user.email, name: user.name, role: "SUPERVISOR", teacherId: null };
 
   const subject = await prisma.subject.create({ data: { name: `disc-subject-${suffix}` } });
   const period = await prisma.period.create({
-    data: { name: `disc-period-${suffix}`, startTime: "08:00", endTime: "09:00", order: 900_000 + Math.floor(Math.random() * 100_000) },
+    data: {
+      name: `disc-period-${suffix}`,
+      startTime: "08:00",
+      endTime: "09:00",
+      order: 900_000 + Math.floor(Math.random() * 100_000),
+    },
   });
   const teacherUser = await prisma.user.create({
     data: { email: `disc-teacher-${suffix}@test.local`, name: "Disc Teacher", role: "TEACHER", passwordHash: "x" },
@@ -132,7 +142,9 @@ describe("applySuggestedAction / releaseDisciplinaryAction", () => {
     expect(updated.status).toBe("RESOLVED");
     expect(updated.resolvedByUserId).toBe(supervisor.id);
 
-    const audit = await prisma.auditLog.findFirst({ where: { action: "DISCIPLINARY_ACTION_RELEASED", entityId: action.id } });
+    const audit = await prisma.auditLog.findFirst({
+      where: { action: "DISCIPLINARY_ACTION_RELEASED", entityId: action.id },
+    });
     expect(audit).not.toBeNull();
   });
 });

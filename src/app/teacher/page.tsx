@@ -11,12 +11,8 @@ export default async function TeacherPage() {
     <>
       <AppHeader title="تسجيل الحضور" userName={user.name} />
       <main className="mx-auto max-w-lg p-3">
-        {session.state === "NO_ACTIVE_PERIOD" && (
-          <EmptyState message="لا توجد حصة جارية الآن." />
-        )}
-        {session.state === "NOT_SCHEDULED" && (
-          <EmptyState message="لا يوجد جدول لك في هذه الحصة." />
-        )}
+        {session.state === "NO_ACTIVE_PERIOD" && <EmptyState message="لا توجد حصة جارية الآن." />}
+        {session.state === "NOT_SCHEDULED" && <EmptyState message="لا يوجد جدول لك في هذه الحصة." />}
         {session.state === "READY" && <RosterClient initial={session} />}
       </main>
     </>
@@ -25,8 +21,6 @@ export default async function TeacherPage() {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="mt-10 rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500">
-      {message}
-    </div>
+    <div className="mt-10 rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500">{message}</div>
   );
 }

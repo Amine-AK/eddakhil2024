@@ -20,7 +20,10 @@ export async function activateE2EPeriod(): Promise<{ scheduleId: string; dateKey
   const current = findCurrentPeriod(periods, timeMinutes);
   if (!current) return null;
 
-  const teacherUser = await prisma.user.findUniqueOrThrow({ where: { email: E2E_TEACHER_EMAIL }, include: { teacher: true } });
+  const teacherUser = await prisma.user.findUniqueOrThrow({
+    where: { email: E2E_TEACHER_EMAIL },
+    include: { teacher: true },
+  });
   const e2eClass = await prisma.class.findFirstOrThrow({ where: { name: "E2E-TEST" } });
   const subject = await prisma.subject.findFirstOrThrow();
   const academicYear = await prisma.academicYear.findFirstOrThrow({ where: { isActive: true } });
@@ -56,4 +59,26 @@ export async function getAttendanceEventCount(scheduleId: string): Promise<numbe
 
 export async function disconnect(): Promise<void> {
   await prisma.$disconnect();
+}
+
+export const GATE_EMAIL = "gate@school.test";
+export const SUPERVISOR_EMAIL = "supervisor@school.test";
+
+export async function createPendingJustification(): Promise<{ id: string; studentMassarCode: string }> {
+  const student = await prisma.student.findFirstOrThrow({ where: { class: { name: "E2E-TEST" } } });
+  const gateUser = await prisma.user.findFirstOrThrow({ where: { role: "GATE" } });
+  const { dateKey } = schoolLocalParts(new Date());
+  const justification = await prisma.justification.create({
+    data: {
+      studentId: student.id,
+      absenceDate: dateKeyToUtcDate(dateKey),
+      reasonText: "عذر طبي - اختبار آلي",
+      submittedByUserId: gateUser.id,
+    },
+  });
+  return { id: justification.id, studentMassarCode: student.massarCode! };
+}
+
+export async function deleteJustification(id: string): Promise<void> {
+  await prisma.justification.deleteMany({ where: { id } });
 }

@@ -90,7 +90,9 @@ export async function getGateStudentView(studentId: string, now: Date = new Date
     computeEntryDecisionForStudent(studentId, now),
   ]);
 
-  const latestEvents = latestPerPeriod(events).sort((a, b) => (a.schedule?.period.order ?? 0) - (b.schedule?.period.order ?? 0));
+  const latestEvents = latestPerPeriod(events).sort(
+    (a, b) => (a.schedule?.period.order ?? 0) - (b.schedule?.period.order ?? 0),
+  );
 
   return {
     student: {
@@ -121,14 +123,22 @@ export async function getGateStudentView(studentId: string, now: Date = new Date
   };
 }
 
-export type IssueEntryResult = { recommendedDecision: EntryDecision; finalDecision: EntryDecision; overridden: boolean };
+export type IssueEntryResult = {
+  recommendedDecision: EntryDecision;
+  finalDecision: EntryDecision;
+  overridden: boolean;
+};
 
 /** Issues (or replays, if retried) an entry decision. The recommendation is always recomputed server-side — the client's opinion of it is never trusted. */
 export async function issueEntry(user: SessionUser, input: IssueEntryInput): Promise<IssueEntryResult> {
   return prisma.$transaction(async (tx) => {
     const existing = await tx.entryEvent.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
     if (existing) {
-      return { recommendedDecision: existing.recommendedDecision, finalDecision: existing.finalDecision, overridden: existing.overridden };
+      return {
+        recommendedDecision: existing.recommendedDecision,
+        finalDecision: existing.finalDecision,
+        overridden: existing.overridden,
+      };
     }
 
     const recommendation = await computeEntryDecisionForStudent(input.studentId);

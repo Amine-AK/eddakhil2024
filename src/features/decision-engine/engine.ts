@@ -107,7 +107,9 @@ export function evaluateEntryDecision(input: EntryDecisionInput): EntryDecisionR
     const earliest = input.todayAbsences.reduce((min, a) => (a.createdAt < min.createdAt ? a : min));
     const windowMs = input.config.justificationWindowHours * 60 * 60 * 1000;
     const relevant = input.justifications.filter(
-      (j) => isSameCalendarDay(j.absenceDate, earliest.date) && j.submittedAt.getTime() - earliest.createdAt.getTime() <= windowMs,
+      (j) =>
+        isSameCalendarDay(j.absenceDate, earliest.date) &&
+        j.submittedAt.getTime() - earliest.createdAt.getTime() <= windowMs,
     );
     const approved = relevant.some((j) => j.status === "APPROVED");
     const pending = relevant.some((j) => j.status === "PENDING");
