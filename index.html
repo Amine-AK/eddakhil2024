@@ -22,20 +22,44 @@
     animation: fadeIn 1s ease-out;
   }
 
-  .logo-circle {
-    width: 110px;
-    height: 110px;
+  .logo-box {
+    width: 130px;
+    height: 130px;
+    max-width: 30vw;
+    max-height: 30vw;
     margin: 0 auto 25px;
     border-radius: 50%;
     background: white;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 0 0 8px rgba(255,255,255,0.15);
+    animation: pop 0.8s ease-out, float 3s ease-in-out infinite 0.8s;
+  }
+
+  .logo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Fallback shown if the image fails to load */
+  .logo-box .fallback-text {
     font-size: 42px;
     font-weight: bold;
     color: #1e3c72;
-    box-shadow: 0 0 0 8px rgba(255,255,255,0.15);
-    animation: pop 0.8s ease-out, float 3s ease-in-out infinite 0.8s;
+  }
+
+  @media (max-width: 480px) {
+    .logo-box {
+      width: 90px;
+      height: 90px;
+    }
+    .logo-box .fallback-text {
+      font-size: 32px;
+    }
   }
 
   h1 {
@@ -79,6 +103,16 @@
     animation: fill 3s linear forwards;
   }
 
+  .welcome-msg {
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 320px;
+    margin: 0 auto 28px;
+    opacity: 0.9;
+    direction: rtl;
+    animation: slideUp 0.8s ease-out 0.5s both;
+  }
+
   .redirect-text {
     margin-top: 14px;
     font-size: 13px;
@@ -119,19 +153,24 @@
 <body>
 
 <div class="container">
-  <div class="logo-circle">AD</div>
+  <div class="logo-box">
+    <img src="https://ins-eddakhil2024.wuaze.com/wp-content/uploads/2024/09/1111-removebg-preview.png" alt="School Logo"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+    <div class="fallback-text" style="display:none; align-items:center; justify-content:center; width:100%; height:100%;">AD</div>
+  </div>
   <h1>ABD ERRAHMAN DAKHIL</h1>
   <p class="subtitle">School Website</p>
+  <p class="welcome-msg">مرحباً بكم طلابنا الأعزاء 👋<br>يتم تحميل الصفحة، الرجاء الانتظار قليلاً...</p>
   <div class="spinner"></div>
   <div class="progress-bar">
     <div class="progress-fill"></div>
-  </div>  
+  </div>
   <div class="redirect-text">Redirecting you in a few seconds...</div>
 </div>
 
 <script>
   // Change this URL to your actual destination
-  const redirectURL = "https://ins-eddakhil2024.wuaze.com/?i=1";
+  const redirectURL = "https://example.com";
   const delay = 3000; // 3 seconds, matches the progress bar animation
 
   setTimeout(function () {
