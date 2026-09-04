@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  // Standalone output is for the Docker deployment target (docs/DEPLOYMENT.md)
+  // and is unnecessary — Vercel's own docs note it can conflict with their
+  // build/runtime — on Vercel, which sets VERCEL=1 automatically.
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   eslint: {
     ignoreDuringBuilds: false,
   },
