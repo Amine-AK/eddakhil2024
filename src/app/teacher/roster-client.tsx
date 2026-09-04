@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
 import { REMOVAL_REASONS } from "@/lib/validation/attendance";
+import { enqueueMutation } from "@/lib/offline/sync";
+import { useSyncStatus } from "@/lib/offline/use-sync-status";
 
 type Status = "PRESENT" | "ABSENT" | "LATE";
 type Segment = "FULL" | "HOUR_1" | "HOUR_2";
@@ -45,16 +47,14 @@ const REASON_LABELS: Record<(typeof REMOVAL_REASONS)[number], string> = {
   OTHER: "سبب آخر",
 };
 
-type SyncStatus = "idle" | "saving" | "synced" | "failed";
-
 export function RosterClient({ initial }: { initial: ReadySession }) {
   const [statuses, setStatuses] = useState<Record<string, Status>>(() =>
     Object.fromEntries(initial.students.map((s) => [s.id, s.status ?? "PRESENT"])),
   );
   const [segment, setSegment] = useState<Segment>("FULL");
   const [alerts, setAlerts] = useState<AlertView[]>(initial.alerts);
-  const [sync, setSync] = useState<SyncStatus>("idle");
   const [removalTarget, setRemovalTarget] = useState<string | null>(null);
+  const sync = useSyncStatus();
 
   function setStatus(studentId: string, status: Status) {
     setStatuses((prev) => ({ ...prev, [studentId]: status }));
@@ -62,57 +62,38 @@ export function RosterClient({ initial }: { initial: ReadySession }) {
 
   async function handleConfirmPresent(alertId: string) {
     setAlerts((prev) => prev.filter((a) => a.id !== alertId));
-    try {
-      await fetch("/api/teacher/attendance/confirm-present", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alertId, idempotencyKey: crypto.randomUUID() }),
-      });
-    } catch {
-      // best-effort; the alert will simply reappear on next load if this failed
-    }
+    const idempotencyKey = crypto.randomUUID();
+    // Queued (not sent directly): survives a reload and is never lost or
+    // duplicated even if the network drops mid-request — the same pattern
+    // as the roster save below.
+    await enqueueMutation("/api/teacher/attendance/confirm-present", { alertId, idempotencyKey }, idempotencyKey);
   }
 
   async function handleSave() {
-    setSync("saving");
-    try {
-      const res = await fetch("/api/teacher/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scheduleId: initial.scheduleId,
-          dateKey: initial.dateKey,
-          segment,
-          idempotencyKey: crypto.randomUUID(),
-          entries: Object.entries(statuses).map(([studentId, status]) => ({ studentId, status })),
-        }),
-      });
-      if (!res.ok) throw new Error("save failed");
-      setSync("synced");
-    } catch {
-      setSync("failed");
-    }
+    if (initial.students.length === 0) return; // nothing to validate/queue
+    const idempotencyKey = crypto.randomUUID();
+    await enqueueMutation(
+      "/api/teacher/attendance",
+      {
+        scheduleId: initial.scheduleId,
+        dateKey: initial.dateKey,
+        segment,
+        idempotencyKey,
+        entries: Object.entries(statuses).map(([studentId, status]) => ({ studentId, status })),
+      },
+      idempotencyKey,
+    );
   }
 
   async function handleRemoval(studentId: string, reasonCode: string) {
     setRemovalTarget(null);
     setStatus(studentId, "ABSENT");
-    try {
-      await fetch("/api/teacher/removal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scheduleId: initial.scheduleId,
-          dateKey: initial.dateKey,
-          segment,
-          studentId,
-          reasonCode,
-          idempotencyKey: crypto.randomUUID(),
-        }),
-      });
-    } catch {
-      // will be retried by an explicit re-save; nothing to reconcile silently here
-    }
+    const idempotencyKey = crypto.randomUUID();
+    await enqueueMutation(
+      "/api/teacher/removal",
+      { scheduleId: initial.scheduleId, dateKey: initial.dateKey, segment, studentId, reasonCode, idempotencyKey },
+      idempotencyKey,
+    );
   }
 
   return (
@@ -219,10 +200,10 @@ export function RosterClient({ initial }: { initial: ReadySession }) {
           <SyncIndicator status={sync} />
           <button
             onClick={handleSave}
-            disabled={sync === "saving"}
+            disabled={sync === "syncing"}
             className="tap-target flex-1 rounded-xl bg-blue-700 py-3 text-base font-bold text-white disabled:opacity-50"
           >
-            {sync === "saving" ? "جارٍ الحفظ..." : "حفظ الحضور"}
+            {sync === "syncing" ? "جارٍ الحفظ..." : "حفظ الحضور"}
           </button>
         </div>
       </div>
@@ -230,10 +211,11 @@ export function RosterClient({ initial }: { initial: ReadySession }) {
   );
 }
 
-function SyncIndicator({ status }: { status: SyncStatus }) {
-  const cfg: Record<SyncStatus, { text: string; className: string }> = {
+function SyncIndicator({ status }: { status: ReturnType<typeof useSyncStatus> }) {
+  const cfg: Record<ReturnType<typeof useSyncStatus>, { text: string; className: string }> = {
     idle: { text: "غير محفوظ", className: "text-slate-400" },
-    saving: { text: "جارٍ المزامنة", className: "text-blue-600" },
+    pending: { text: "بانتظار الاتصال بالشبكة", className: "text-amber-600" },
+    syncing: { text: "جارٍ المزامنة", className: "text-blue-600" },
     synced: { text: "تمت المزامنة", className: "text-green-600" },
     failed: { text: "فشلت المزامنة", className: "text-red-600" },
   };

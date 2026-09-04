@@ -178,6 +178,36 @@ async function main() {
     }
   }
 
+  // ── E2E test fixture ─────────────────────────────────────────────────
+  // A dedicated class/teacher/students the Playwright suite can log in as.
+  // Deliberately no Schedule row is created here: which period is "current"
+  // must always be resolved from the real clock (never faked), so the E2E
+  // suite itself links this teacher to whichever real period is active at
+  // the moment it runs (see tests/e2e/fixtures.ts) and cleans it up after.
+  const e2eClass = await prisma.class.upsert({
+    where: { academicYearId_name: { academicYearId: year.id, name: "E2E-TEST" } },
+    update: {},
+    create: { name: "E2E-TEST", academicYearId: year.id },
+  });
+  const e2eTeacherUser = await prisma.user.upsert({
+    where: { email: "e2e-teacher@school.test" },
+    update: {},
+    create: { email: "e2e-teacher@school.test", name: "معلم الاختبار", role: Role.TEACHER, passwordHash },
+  });
+  await prisma.teacher.upsert({
+    where: { userId: e2eTeacherUser.id },
+    update: {},
+    create: { userId: e2eTeacherUser.id },
+  });
+  for (let i = 0; i < 3; i++) {
+    const massarCode = `E2E${i + 1}`;
+    await prisma.student.upsert({
+      where: { massarCode },
+      update: {},
+      create: { massarCode, firstName: firstNonNull(STUDENT_FIRST, i), lastName: "E2E", classId: e2eClass.id },
+    });
+  }
+
   // ── Example attendance / alert / review / disciplinary scenarios ────
   // Anchored on the first class + today's weekday so demo data lines up
   // with "today" regardless of when this script runs.
