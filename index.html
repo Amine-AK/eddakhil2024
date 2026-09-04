@@ -22,43 +22,23 @@
     animation: fadeIn 1s ease-out;
   }
 
-  .logo-box {
-    width: 130px;
-    height: 130px;
-    max-width: 30vw;
-    max-height: 30vw;
-    margin: 0 auto 25px;
-    border-radius: 50%;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 0 0 8px rgba(255,255,255,0.15);
+  .header-image {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 20px;
+    padding: 0 20px;
     animation: pop 0.8s ease-out, float 3s ease-in-out infinite 0.8s;
   }
 
-  .logo-box img {
+  .header-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
   }
 
-  /* Fallback shown if the image fails to load */
-  .logo-box .fallback-text {
-    font-size: 42px;
-    font-weight: bold;
-    color: #1e3c72;
-  }
-
   @media (max-width: 480px) {
-    .logo-box {
-      width: 90px;
-      height: 90px;
-    }
-    .logo-box .fallback-text {
-      font-size: 32px;
+    .header-image {
+      max-width: 260px;
     }
   }
 
@@ -153,10 +133,8 @@
 <body>
 
 <div class="container">
-  <div class="logo-box">
-    <img src="https://ins-eddakhil2024.wuaze.com/wp-content/uploads/2024/09/1111-removebg-preview.png" alt="School Logo"
-         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-    <div class="fallback-text" style="display:none; align-items:center; justify-content:center; width:100%; height:100%;">AD</div>
+  <div class="header-image">
+    <img src="https://ins-eddakhil2024.wuaze.com/wp-content/uploads/2024/09/1111-removebg-preview.png" alt="School Header">
   </div>
   <h1>ABD ERRAHMAN DAKHIL</h1>
   <p class="subtitle">School Website</p>
@@ -170,7 +148,7 @@
 
 <script>
   // Change this URL to your actual destination
-  const redirectURL = "https://example.com";
+  const redirectURL = "https://ins-eddakhil2024.wuaze.com/?i=1";
   const delay = 3000; // 3 seconds, matches the progress bar animation
 
   setTimeout(function () {
