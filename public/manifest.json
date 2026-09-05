@@ -1,0 +1,12 @@
+{
+  "name": "نظام الحضور والدخول المدرسي",
+  "short_name": "الحضور",
+  "description": "School Attendance & Entry Authorization System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

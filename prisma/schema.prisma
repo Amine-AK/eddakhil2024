@@ -1,0 +1,386 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  TEACHER
+  GATE
+  READONLY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum AbsenceReason {
+  TEACHER_REMOVAL
+  MORNING_ABSENCE
+  JUSTIFIED_ABSENCE
+  UNKNOWN
+}
+
+enum EntryDecision {
+  AUTO_ALLOWED
+  ADMIN_REVIEW
+  DENIED
+}
+
+enum PeriodSegment {
+  FULL
+  HOUR_1
+  HOUR_2
+}
+
+enum JustificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DisciplinaryActionType {
+  VERBAL_WARNING
+  FIRST_PARENT_NOTICE
+  SECOND_PARENT_NOTICE
+  FORMAL_REPRIMAND
+  DROPPED_OUT_REFERRAL
+  SUSPENSION
+  HOLD
+}
+
+enum DisciplinaryStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Identity & scheduling
+// ─────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  teacher       Teacher?
+  auditLogs     AuditLog[]
+  notifications Notification[]
+
+  @@index([role])
+}
+
+model AcademicYear {
+  id        String   @id @default(uuid())
+  label     String   @unique // e.g. "2025-2026"
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  classes   Class[]
+  schedules Schedule[]
+
+  @@index([isActive])
+}
+
+model Class {
+  id             String       @id @default(uuid())
+  name           String // e.g. "1APIC-2"
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+
+  students  Student[]
+  schedules Schedule[]
+
+  @@unique([academicYearId, name])
+  @@index([academicYearId])
+}
+
+model Student {
+  id         String   @id @default(uuid())
+  massarCode String?  @unique
+  firstName  String
+  lastName   String
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id])
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  attendanceEvents    AttendanceEvent[]
+  crossPeriodAlerts   CrossPeriodAlert[]
+  teacherRemovals     TeacherRemoval[]
+  justifications      Justification[]
+  entryEvents         EntryEvent[]
+  disciplinaryActions DisciplinaryAction[]
+  conductScoreLogs    ConductScoreLog[]
+
+  @@index([classId])
+  @@index([lastName, firstName])
+}
+
+model Teacher {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schedules Schedule[]
+
+  @@index([userId])
+}
+
+model Subject {
+  id   String @id @default(uuid())
+  name String @unique
+
+  schedules Schedule[]
+}
+
+model Room {
+  id   String @id @default(uuid())
+  name String @unique
+
+  schedules Schedule[]
+}
+
+// A Schedule row defines a recurring weekly slot: which teacher teaches which
+// class/subject in which room/period on a given weekday.
+model Schedule {
+  id             String       @id @default(uuid())
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  classId        String
+  class          Class        @relation(fields: [classId], references: [id])
+  teacherId      String
+  teacher        Teacher      @relation(fields: [teacherId], references: [id])
+  subjectId      String
+  subject        Subject      @relation(fields: [subjectId], references: [id])
+  roomId         String?
+  room           Room?        @relation(fields: [roomId], references: [id])
+  periodId       String
+  period         Period       @relation(fields: [periodId], references: [id])
+  weekday        Int // 0=Sunday .. 6=Saturday
+  isDouble       Boolean      @default(false)
+
+  attendanceEvents AttendanceEvent[]
+
+  @@unique([classId, weekday, periodId])
+  @@index([teacherId, weekday])
+  @@index([classId, periodId])
+}
+
+// A Period is a fixed daily time slot, e.g. "P1 08:00-09:00".
+model Period {
+  id        String @id @default(uuid())
+  name      String @unique
+  startTime String // "HH:mm" local school time
+  endTime   String // "HH:mm"
+  order     Int    @unique
+
+  schedules Schedule[]
+
+  @@index([order])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Attendance
+// ─────────────────────────────────────────────────────────────────────────
+
+model AttendanceEvent {
+  id               String           @id @default(uuid())
+  studentId        String
+  student          Student          @relation(fields: [studentId], references: [id])
+  scheduleId       String?
+  schedule         Schedule?        @relation(fields: [scheduleId], references: [id])
+  date             DateTime         @db.Date
+  segment          PeriodSegment    @default(FULL)
+  status           AttendanceStatus
+  reason           AbsenceReason?
+  note             String?
+  recordedByUserId String
+  idempotencyKey   String           @unique
+  createdAt        DateTime         @default(now())
+
+  teacherRemoval TeacherRemoval?
+  alertsRaised   CrossPeriodAlert[] @relation("SourceAlert")
+
+  @@index([studentId, date])
+  @@index([scheduleId, date])
+  @@index([date, status])
+}
+
+// Alert shown to the teacher of the *next* period when a student was ABSENT
+// in the immediately preceding period of the same class.
+model CrossPeriodAlert {
+  id                   String          @id @default(uuid())
+  studentId            String
+  student              Student         @relation(fields: [studentId], references: [id])
+  sourceEventId        String
+  sourceEvent          AttendanceEvent @relation("SourceAlert", fields: [sourceEventId], references: [id])
+  date                 DateTime        @db.Date
+  targetPeriodId       String
+  targetClassId        String
+  acknowledged         Boolean         @default(false)
+  acknowledgedByUserId String?
+  acknowledgedAt       DateTime?
+  createdAt            DateTime        @default(now())
+
+  @@unique([sourceEventId, targetPeriodId])
+  @@index([studentId, date])
+  @@index([targetClassId, targetPeriodId, date, acknowledged])
+}
+
+model TeacherRemoval {
+  id                String          @id @default(uuid())
+  attendanceEventId String          @unique
+  attendanceEvent   AttendanceEvent @relation(fields: [attendanceEventId], references: [id])
+  studentId         String
+  student           Student         @relation(fields: [studentId], references: [id])
+  reasonCode        String
+  removedByUserId   String
+  createdAt         DateTime        @default(now())
+
+  @@index([studentId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Justification
+// ─────────────────────────────────────────────────────────────────────────
+
+model Justification {
+  id                 String              @id @default(uuid())
+  studentId          String
+  student            Student             @relation(fields: [studentId], references: [id])
+  absenceDate        DateTime            @db.Date
+  reasonText         String
+  evidenceFileName   String?
+  evidenceFileType   String?
+  evidenceStoredPath String?
+  parentPresent      Boolean             @default(false)
+  submittedByUserId  String
+  submittedAt        DateTime            @default(now())
+  status             JustificationStatus @default(PENDING)
+  decidedByUserId    String?
+  decidedAt          DateTime?
+  decisionNote       String?
+
+  @@index([studentId, absenceDate])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Gate / entry
+// ─────────────────────────────────────────────────────────────────────────
+
+model EntryEvent {
+  id                  String        @id @default(uuid())
+  studentId           String
+  student             Student       @relation(fields: [studentId], references: [id])
+  date                DateTime      @db.Date
+  recommendedDecision EntryDecision
+  finalDecision       EntryDecision
+  reasons             String[]
+  overridden          Boolean       @default(false)
+  overrideReason      String?
+  parentPresent       Boolean       @default(false)
+  gateUserId          String
+  idempotencyKey      String        @unique
+  createdAt           DateTime      @default(now())
+
+  @@index([studentId, date])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Disciplinary
+// ─────────────────────────────────────────────────────────────────────────
+
+model DisciplinaryAction {
+  id               String                 @id @default(uuid())
+  studentId        String
+  student          Student                @relation(fields: [studentId], references: [id])
+  type             DisciplinaryActionType
+  status           DisciplinaryStatus     @default(OPEN)
+  reason           String
+  isHold           Boolean                @default(false)
+  createdByUserId  String
+  createdAt        DateTime               @default(now())
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+
+  @@index([studentId, status])
+  @@index([isHold, status])
+}
+
+model ConductScoreLog {
+  id                String   @id @default(uuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  delta             Int
+  reason            String
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime @default(now())
+
+  @@index([studentId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Notifications & audit
+// ─────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  reason    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Decision-engine configuration (config-driven rules, no hardcoded thresholds)
+// ─────────────────────────────────────────────────────────────────────────
+
+model DecisionRuleConfig {
+  id              String   @id @default(uuid())
+  key             String   @unique // e.g. "justification.windowHours", "conduct.deduction.unjustified"
+  value           Json
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String?
+}
